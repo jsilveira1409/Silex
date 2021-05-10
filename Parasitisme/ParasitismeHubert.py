@@ -5,10 +5,10 @@ import math as m
 
 #   Parametres
 alpha = np.arange(-1.5, 1.5, 0.001)                      #en degrees, conversion apres, axe x
-p = 5                                    #hauteur du centre de rotation en mm
-l = 6                                   #longueur de la tige en mm
-d = 0.7                         #diametre de la tige en mm
-E = 190E9                        #module de young
+p = 5.1                                    #hauteur du centre de rotation en mm
+l = 7                                   #longueur de la tige en mm
+d = 1.5                         #diametre de la tige en mm
+E = 210E9                        #module de young
 
 #   Constantes
 
@@ -57,8 +57,8 @@ plt.xlabel("Angle d'inclinaison du miroir [°]")
 plt.ylabel("parasitisme deltaL [m]")
 axes = plt.gca()
 axes.set_ylim([-0.7E-6, 0.7E-6])
-plt.figtext(.92, .8, "p = %sm"%(p) )
-plt.figtext(.92, .75, "l = %sm"%(l) )
-plt.figtext(.92, .7, "d = %sm"%(d) )
+plt.figtext(.3, .9, "p = %sm"%(p) )
+plt.figtext(.5, .9, "l = %sm"%(l) )
+plt.figtext(.7, .9, "d = %sm"%(d) )
 plt.savefig('line_plot.svg')  
 plt.show()
