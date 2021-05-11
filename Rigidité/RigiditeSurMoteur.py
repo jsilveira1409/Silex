@@ -20,36 +20,36 @@ Dm = 12.7   #diametre miroir
 gamma = Dm/2 + a 
 
 
-# Table a lames paralleles x2
-E_tlp = 190E9         #module de young
-b_tlp = 90          #largeur des lames
-h_tlp = 2           #epaisseur des lames
-l_tlp =  4          #longueur des lames
+    # Table a lames paralleles x2
+    E_tlp = 190E9         #module de young
+    b_tlp = 90          #largeur des lames
+    h_tlp = 2           #epaisseur des lames
+    l_tlp =  4          #longueur des lames
 
-# Pivot RCC
-E_rcc = 190E9         #module de young
-h_rcc = 90            # diametre de la tige, egale à e et à b dans la formule
-l_rcc =  4            #longueur des lames
-p_rcc = 6              #hauteur du pivot virtuel
+    # Pivot RCC
+    E_rcc = 190E9         #module de young
+    h_rcc = 90            # diametre de la tige, egale à e et à b dans la formule
+    l_rcc =  4            #longueur des lames
+    p_rcc = 6              #hauteur du pivot virtuel
 
-# Tige Polaire
-E_tp = 190E9        # module de young
-d_tp = 90           # diametre 
-l_tp =  4           # longueur 
-v_tp = 0.3          # module de poisson
+    # Tige Polaire
+    E_tp = 190E9        # module de young
+    d_tp = 90           # diametre 
+    l_tp =  4           # longueur 
+    v_tp = 0.3          # module de poisson
 
-# Inverseur
-E_inv = 190E9       # module de young
-b_inv = 90          # largeur de la base
-L_inv =  4          # longueur des lames
-h_inv = 2           # epaisseur des lames
-l_inv = 5           # distance entre le pivot et la tige
+    # Inverseur
+    E_inv = 190E9       # module de young
+    b_inv = 90          # largeur de la base
+    L_inv =  4          # longueur des lames
+    h_inv = 2           # epaisseur des lames
+    l_inv = 5           # distance entre le pivot et la tige
 
-#Tige normal
-E_t = 190E9        # module de young
-d_t = 90           # diametre 
-l_t =  4           # longueur 
-v_t = 0.3          # module de poisson
+    #Tige normal
+    E_t = 190E9        # module de young
+    d_t = 90           # diametre 
+    l_t =  4           # longueur 
+    v_t = 0.3          # module de poisson
 
 
 # Conversion
