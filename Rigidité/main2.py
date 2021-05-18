@@ -12,7 +12,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import math as m
-
+va te pendre pelo
 ###############################################PROGRAM OPTIONS
 graphs = True                   #print graphs ?
 
