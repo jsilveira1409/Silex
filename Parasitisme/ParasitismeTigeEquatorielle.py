@@ -10,7 +10,7 @@ import math as m
 
 # Constantes 
 
-Fm = 2      #force moteur
+Fm_max = 2      #force moteur max
 Dm = 12.7   #diametre miroir
 a = 51      #distance entre miroir et application de la force, diametre du disque du support 
 alpha = 1.5 #angle d'inclinaison du miroir en degree
