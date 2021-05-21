@@ -12,21 +12,35 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import math as m
-
 ###############################################PROGRAM OPTIONS
 graphs = False                   #print graphs ?
 
 #Constantes
 F_mt = 1.8      #force moteur
-z_mt = 2.5      #course du moteur, position
-z_max = 1       #course max du moteur, depuis la position nominal
+z_mt = 2.5      #position nominale
+z_max = 1.25       #course max du moteur, depuis la position nominal
 alpha_max = 1.5 #inclinaison max
 M_mt = 7
+contr_tech = 60
+
 
 #Parametres
-
 alphaVar = np.arange(-1.5, 1.5, 0.001)        #en degrees, conversion apres, axe x
 alphaFixe = 1.5                               #en degrees, conversion apres, axe x
+
+
+#roue inertiel
+CR_ri = 18.75E-3
+
+R_ri_1 = 12.5E-3 #rayon roue 1
+p_ri_1 = 8.94   #densité roue 1
+CG_ri_1 = 12.5E-3
+
+L_ri_2 = 3E-3 #rayon carré 2
+p_ri_2 = p_ri_1 ##densité carré 2
+h_ri_2 = 4E-3  #largeur carré 2
+V_ri_2 = (L_ri_2**2)*h_ri_2
+CG_ri_2 = 18.75E-3
 
 #miroir
 D_m = 12.7                      #diametre miroir
@@ -34,7 +48,7 @@ h_m = 6.4                       #hauteur du miroir en mm
 M_m = 2                         #masse du miroir
 yo_m = h_m/2                    #axe neutre
 a = (180*z_max/(alpha_max*m.pi)) - D_m/2                          #distance entre miroir et application de la force   
-R_m = a + D_m/2                 #distance entre centre du miroir et application des rcc
+R_m = a + D_m/2 + 5                 #distance entre centre du miroir et application des rcc
 
 #support
 h_s = 2                         #epaisseur
@@ -49,22 +63,26 @@ l_tp = 11.5                        #longueur de la tige en mm
 ho_tp = 1.5                    #hauteur du centre de rotation en mm, distance entre point de contacte de la tige et miroir et le centre de rotation
 leff_tp = 0.699*l_tp            #longueur efficace, Pinned-fixed
 E_tp = 114E9                    #module de young, en acier
-G_tp = 41E9
-v_tp = E_tp/(2*G_tp) - 2                      #module de poisson
+v_tp = 0.39                      #module de poisson
 
 # Masse inertielle
-M_cp = 7                        #masse
+M_cp = 20.64                        #masse
 
 # Table a lames paralleles x2
-contr_adm_tlp = 800E6           #contrainte admissible, acier bohler 
-b_tlp = 10                      #largeur des lames
-e_tlp = 30                       #distance entre les lames
+M_blocC_tlp = 13.64E-3
+contr_adm_tlp = 500E6           #contrainte admissible, acier bohler 
+SF_tlp = 1.5  #facteur de securite
+b_tlp = 10.5                      #largeur des lames
+e_tlp = 20                      #distance entre les lames
 l_tlp = 25                      #longueur des lames
-E_tlp = 114E9                       #module de young
-h_tlp = 0.2                       #epaisseur des lames
-N_tlp = 100                     #charge du ressort sur les tlb
+E_tlp = 114E9                    #module de young
+h_tlp = 0.42                       #epaisseur des cols
+H_tlp = 3.2                       #epaisseur des lames grandes
+N_tlp = 200                     #charge du ressort sur les tlb
 N_tlp_c = 1             #charge critique, calculé apres
 N_tlp_o = 1             #parametre pour rigidite avec charge, calculé apres
+epsilon = 0.475         # = 2*l/l_c
+lc_tlp = 2*l_tlp/epsilon
 tlpCharge = True                #sont-elles chargées?
 
 # Tige equatoriale
@@ -121,8 +139,12 @@ l_eq = l_eq/1000
 d_eq = d_eq/1000              
 M_cp = M_cp/1000              
 b_tlp = b_tlp/1000            
-h_tlp = h_tlp/1000            
-l_tlp =  l_tlp/1000           
+e_tlp = e_tlp/1000            
+l_tlp =  l_tlp/1000
+E_tlp = E_tlp/1000
+h_tlp = h_tlp/1000
+H_tlp = H_tlp/1000
+lc_tlp = lc_tlp/1000
 d_rcc = d_rcc/1000            
 ht_rcc = ht_rcc/1000
 l_rcc =  l_rcc/1000           
@@ -145,30 +167,37 @@ l_ti =  l_ti/1000
 ############################################################################  DIMENSIONS
 M_s = pmat_s *m.pi*((d_s+D_m/2)**2 - (D_m/2)**2)*h_s    #masse
 I_inv = 2E-3                           #inverseur, a definir en fonction de tout jai envie de mourir
-
-
-#Table a lames
-print("DIMENSIONS")
-
-print("Support")
-print("a :", "{:.3e}".format(a))
-print("Table a lames ")
-print("Longueur des lames minimales :", "{:.3e}".format((3*z_max**2)/(5*0.6E-3)))
-
-print('\n')
-
-############################################################################  INERTIE DU SYSTEM
-
-
-
+I_tp = (d_tp**4)/12                 #inertie de la tige polaire
 
 #Miroir et support
-A_s = 2*h_s*d_s
-A_m = h_m*D_m
-yo = (yo_s*A_s + yo_m*A_m)/( A_m + A_s)  #axe neutre du miroir et support
-Irot_s = 4.4478E-5  #pmat_s*m.pi*h_s*((a + D_m/2)**4 - (D_m/2)**4 )/4 + pmat_s*m.pi*h_s**3*((a + D_m/2)**2 - (D_m/2)**2 )/12
-Irot_m = 2.7E-8  #M_m*( (D_m/2)**2) /4 + (M_m*h_m**2) /12
-Irot_ms = Irot_m + Irot_s + A_m*(yo_m - yo)**2 +A_s*(yo_s - yo)**2
+CR_ms = 1.5E-3  #position centre de rotation miroir+support par rapport au bas du support
+CG_ms = 2.968E-3  #position du centre de gravité miroir+support par rapport au bas du support
+I_rot_ms_CG = 2.243E-5 #moment d'inertie du miroir+support par rapport au centre de gravité
+I_rot_ms_CR = I_rot_ms_CG + (M_m + M_s)*(CR_ms - CG_ms)**2
+
+#roue inertie 2
+I_ri_2 = (1/6)*(p_ri_2*V_ri_2*L_ri_2**2) +(p_ri_2*V_ri_2*(CG_ri_2-CR_ri)**2)
+
+############################################################################  INERTIE DU SYSTEME
+M_s = pmat_s *m.pi*((d_s+D_m/2)**2 - (D_m/2)**2)*h_s    #masse
+I_inv = 2E-3                           #inverseur, a definir en fonction de tout jai envie de mourir
+I_tp = (d_tp**4)/12                 #inertie de la tige polaire
+
+#Miroir et support
+CR_ms = 1.5E-3  #position centre de rotation miroir+support par rapport au bas du support
+CG_ms = 2.968E-3  #position du centre de gravité miroir+support par rapport au bas du support
+I_rot_ms_CG = 2.243E-5 #moment d'inertie du miroir+support par rapport au centre de gravité
+I_rot_ms_CR = I_rot_ms_CG + (M_m + M_s)*(CR_ms - CG_ms)**2
+
+#roue inertie 2
+I_ri_2 = (1/6)*(p_ri_2*V_ri_2*L_ri_2**2) +(p_ri_2*V_ri_2*(CG_ri_2-CR_ri)**2)
+
+############################################################################ EQUILIBRAGE DU MOMENT INERTIE
+# l'équilibrage du moment d'inertie nous fixe l'inertie de la roue inertiel et donc ses dimensions
+
+I_roue_in = (R_ri_1/R_m)*(I_rot_ms_CR + (M_blocC_tlp*R_m**2) + (M_cp*R_m**2))
+denom = (0.5*m.pi*p_ri_1*(R_ri_1**4))+(p_ri_1*m.pi*(R_ri_1**2)*(CG_ri_1-CR_ri)**2)
+h_ri_1 = (I_roue_in - I_ri_2)/denom
 
 ############################################################################  PARASITISME
 #inverseur lames croise non separe
@@ -182,12 +211,6 @@ par_ts = 3*par_tlp/(5*l_ts)
 
 #tiges inferieurs des cotrepoids 
 par_ti = 3*par_tlp/(5*l_ti)
-print("Parasitisme" )
-print("inverseur : ", "{:.3e}".format(par_inv))
-print("tables à lames : ", "{:.3e}".format(par_tlp))
-print("tiges supérieures : ", "{:.3e}".format(par_ts))
-print("tiges inférieurs : ", "{:.3e}".format(par_ti ))
-print('\n')
 
 ####################################################################### PIVOT RCC ANGULAIRE#
 deltaL_rcc = -m.sqrt(2)*(alphaVar**2 * l_rcc)/15     #vers -z
@@ -210,7 +233,7 @@ deplFaisceauInc = (h_m - ho_tp)*(1/np.cos(alphaVar) - 1)        #vers +z
 Zparasite = deplFaisceauInc + deltaL_tp + deltaL_rcc
 
 #Plot du parasitisme tige polaire
-if(True):
+if(graphs):
     limiteSup = [0.5E-6]* alphaVar.size
     limiteInf = [-0.5E-6]* alphaVar.size
 
@@ -240,25 +263,23 @@ Beta = 2*deltaL/(D_m + 2*a)             #rotation parasite selon z
 Beta = Beta * 180/m.pi
 
 ############################################################################  RIGIDITE EQUIVALENTE
-K_tlp = ( 2*E_tlp*b_tlp*h_tlp**3 )/( l_tlp**3 )
+Ko_tlp =(2*b_tlp*h_tlp**3 *E_tlp)/(epsilon*(3 -3*epsilon + epsilon**2)*l_tlp**3)
 if(tlpCharge == True):
-    N_tlp_c = (8*m.pi*E_tlp*b_tlp*h_tlp**3)/(12*l_tlp**2)
-    if(N_tlp >= N_tlp_c):
-        print("CHARGE CRITIQUE DEPASSEE")
-    N_tlp_o = (2*(m.pi**2) * E_tlp *b_tlp*h_tlp**3) / (12*l_tlp**2)
-    K_tlp = K_tlp - (K_tlp * N_tlp)/N_tlp_o
-    print("Charge critique: ", '{:.2f}'.format(N_tlp_c))
+    No_tlp = l_tlp*Ko_tlp
+K_tlp = Ko_tlp - No_tlp/l_tlp
 K_rcc_angulaire = (2*E_rcc*d_rcc**4 *(l_rcc**2)/ (3*l_rcc**3))
 K_rcc_translation = (E_rcc*d_rcc**4) /(12*ht_rcc)
 K_ts = (E_ts*d_ts**4)/(12*l_ts)
 K_ti = (E_ti*d_ti**4)/(12*l_ti)
 K_tp = E_tp*d_tp**4 *(l_tp**2 + 3*ho_tp*l_tp + 3*ho_tp)
 K_inv = (2*E_inv*b_inv*h_inv**3)/3*L_inv
-K_eq = 2*K_tlp + 2*K_rcc_translation/(R_m**2) + K_tp/(R_m**2) + K_rcc_angulaire/(R_m**2) + (2*K_ts)/(R_m**2) + K_ti/(g_inv**2) + K_inv/(g_inv**2)
-print("rigidité tlp :",  '{:.2f}'.format(K_tlp))
+K_eq = 2*Ko_tlp + 2*K_rcc_translation/(R_m**2) + K_tp/(R_m**2) + K_rcc_angulaire/(R_m**2) + (2*K_ts)/(R_m**2) + K_ti/(g_inv**2) + K_inv/(g_inv**2)
 
 ############################################################################  MASSE REDUITE DU SYSTEM
-c1 = (Irot_m + Irot_s + (M_m + M_s)*(ho_tp - yo)**2 ) /(R_m**2)    #pour alleger les calcules
+
+yo = 0
+#c1 = (Irot_m + Irot_s + (M_m + M_s)*(ho_tp - yo)**2 ) /(R_m**2)    #pour alleger les calcules
+c1 = I_rot_ms_CG + I_rot_ms_CR          ###verifier
 c2 = M_cp
 c3 =( I_inv + M_inv*(i_inv**2) )/(g_inv**2)
 M_red = c1 + c2 + c3
@@ -273,13 +294,12 @@ z_nominal = 2.5E-3
 z_precision_fin = 4E-3
 z_precision_debut = 3.97E-3          #position nominal où le ressort equivalent n'excerce pas de force
 F_eq = K_eq * (z_max - z_eq)
-print("Rigidité equivalente : ""{:.3e}".format(K_eq))
-print("Force equivalente : ""{:.3e}".format(F_eq))
 a_max = (F_mt - F_eq)/(M_red + M_m)         #acceleration maximale, conversion
-print("accélération max : ""{:.3e}".format(a_max))
 theta_precision = 0.015                         #course angluaire pour le balayage de precision, en degree
 z_precision = theta_precision*(m.pi/180)*R_m
-T =1 #m.sqrt(4*m.pi*(z_precision_fin - z_precision_debut)/a_max)            #periode pour passer de -z_pre a + z_pre
+T = 1
+if(a_max > 0):
+    T = m.sqrt(4*m.pi*(z_precision_fin - z_precision_debut)/a_max)            #periode pour passer de -z_pre a + z_pre
 omega = 2*m.pi/T 
 t_base = np.arange(0, T, 0.00001)
 
@@ -319,8 +339,4 @@ if(graphs):
     plt.show()
  
 ################################################################## VALEURS NUMERIQUES
-print("Rotation parasite selon z a cause de la tige equatoriel : %s"%"{:.3e}".format(Beta), '\n')
-print("Rigidité équivalente :%s"%"{:.3e}".format(K_eq))
-print("Masse réduite :%s"%"{:.3e}".format(M_red))
-print("Frequence de scan :%s"%"{:.3e}".format(f_scan))
 
